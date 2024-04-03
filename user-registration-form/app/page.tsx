@@ -13,6 +13,7 @@ export default function Home() {
   });
 
   const [errors, setErrors] = useState({});
+  const [successMessages, setSuccessMessages] = useState({});
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First Name is Required"),
@@ -35,10 +36,11 @@ export default function Home() {
       .required("Confirm password is required")
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e:any) => {
     e.preventDefault();
     try {
       await validationSchema.validate(formData, { abortEarly: false });
+
       console.log("Form Submitted", formData);
       setFormData({
         firstName: "",
@@ -49,22 +51,47 @@ export default function Home() {
       });
     } catch (error) {
       const newErrors = {};
-
+        
       error.inner.forEach((err: any) => {
         newErrors[err.path] = err.message;
       });
-      console.log(newErrors);
+      
       setErrors(newErrors);
 
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = async (e: any) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
+    
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: undefined,
+    }));
+    try {
+      await validationSchema.validateAt(name, { [name]: value });
+      
+      setSuccessMessages((prevMessages) => ({
+        ...prevMessages,
+        [name]: "Valid",
+      }));
+    } catch (error) {
+      
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: error.message,
+      }));
+     
+      setSuccessMessages((prevMessages) => ({
+        ...prevMessages,
+        [name]: undefined,
+      }));
+    }
+  
   };
 
   return (
@@ -85,7 +112,11 @@ export default function Home() {
               type="text"
               placeholder="Firstname"
             />
-            {errors && errors.firstName && <div className="error">{errors.firstName}</div>}
+            
+            {errors?.firstName && <div className="error">{errors.firstName}</div>}
+            {successMessages?.firstName && (
+              <div className="success">{successMessages.firstName}</div>
+            )}
             
           </div>
 
@@ -102,6 +133,9 @@ export default function Home() {
               placeholder="Lastname"
             />
            {errors.lastName && <div className="error">{errors.lastName}</div>}
+           {successMessages.firstName && (
+              <div className="success">{successMessages.lastName}</div>
+            )}
           </div>
 
           <div className="mb-4">
@@ -117,6 +151,10 @@ export default function Home() {
               placeholder="Email Id"
             />
             {errors.email && <div className="error">{errors.email}</div>}
+            {successMessages.firstName && (
+              <div className="success">{successMessages.email}</div>
+            )}
+           
           </div>
 
           <div className="mb-4">
@@ -128,10 +166,14 @@ export default function Home() {
             value={formData.password}
             onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              type="password"
+              
               placeholder="Password"
             />
             {errors.password && <div className="error">{errors.password}</div>}
+            {successMessages.firstName && (
+              <div className="success">{successMessages.password}</div>
+            )}
+            
           </div>
 
           <div className="mb-6">
@@ -143,11 +185,17 @@ export default function Home() {
              value={formData.confirmPassword}
              onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              type="password"
+              
               placeholder="Confirm Password"
             />
              {errors.confirmPassword && (
-          <div className="error">{errors.confirmPassword}</div>
+          <div className="error">{errors.confirmPassword}
+           {successMessages.firstName && (
+              <div className="success">{successMessages.confirmPassword}</div>
+            )}
+          
+</div>
+          
         )}
           </div>
 
